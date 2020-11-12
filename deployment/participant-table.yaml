@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+  ParticipantTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: Participant
+      PrimaryKey:
+        Name: session_id 
+        Type: String
+
+Outputs:
+  ParticipantTableName:
+    Description: Participant table name
+    Value: !Ref ParticipantTable
+    Export:
+      Name: ParticipantTableName
