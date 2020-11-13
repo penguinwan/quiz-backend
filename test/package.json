@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "test": "mocha *.test.js"
+    "test": "mocha batch.test.js"
   },
   "author": "",
   "license": "ISC",

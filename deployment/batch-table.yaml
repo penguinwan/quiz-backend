@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Resources:
+  BatchTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: Batch
+      PrimaryKey:
+        Name: batch_id 
+        Type: String
+
+Outputs:
+  BatchTableName:
+    Description: Batch table name
+    Value: !Ref BatchTable
+    Export:
+      Name: BatchTableName

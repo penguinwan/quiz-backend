@@ -4,35 +4,35 @@ Transform: 'AWS::Serverless-2016-10-31'
 Globals:
   Api:
     EndpointConfiguration: REGIONAL
-    Name: "ParticipantApi"
+    Name: "BatchApi"
     Cors: 
       AllowHeaders: "'Content-Type'"
       AllowOrigin: "'*'"
 
 Resources:
 
-  ParticipantFunction:
+  BatchFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
       Runtime: nodejs12.x
       Timeout: 15
       MemorySize: 512
-      CodeUri: ../src/participant
+      CodeUri: ../src/batch
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !ImportValue ParticipantTableName
+            TableName: !ImportValue BatchTableName
       Environment:
         Variables:
-          TABLE_NAME: !ImportValue ParticipantTableName
+          TABLE_NAME: !ImportValue BatchTableName
       Events:
         GetApi:
           Type: Api
           Properties:
-            Path: /participants/{session_id}
+            Path: /batches/{batch_id}
             Method: GET
         PostApi:
           Type: Api
           Properties:
-            Path: /participants
+            Path: /batches
             Method: POST

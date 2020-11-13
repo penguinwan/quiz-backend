@@ -34,7 +34,7 @@ describe('post participant', function () {
     }
   })
 
-  it('post and get should return result', async function () {
+  it('save and fetch should return result', async function () {
     await save(AWS, TABLE_NAME, 'sessionid-fix', 'nickname-fix');
     const result = await fetch(AWS, TABLE_NAME, 'sessionid-fix');
 
@@ -42,7 +42,7 @@ describe('post participant', function () {
     expect(result.session_id).to.be.equal('sessionid-fix');
   });
 
-  it('fetch handle error', async function() {
+  it('fetch should return undefined', async function() {
     const result = await fetch(AWS, TABLE_NAME, 'non-existence');
     expect(result).undefined;
   })
