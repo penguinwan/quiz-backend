@@ -51,3 +51,31 @@ deploy_batch:
 		--stack-name batch \
 		--no-fail-on-empty-changeset \
 		--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+
+
+deploy_result_table:
+	mkdir -p build
+	aws cloudformation package \
+		--region eu-central-1 \
+		--template-file deployment/result-table.yaml \
+		--output-template-file build/result-table.yaml \
+		--s3-bucket com.penguinwan.deployment
+	aws --region eu-central-1 cloudformation deploy \
+		--template-file build/result-table.yaml \
+		--stack-name result-table \
+		--no-fail-on-empty-changeset \
+		--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
+	
+deploy_result:
+	cd src/batch && npm i
+	mkdir -p build
+	aws cloudformation package \
+		--region eu-central-1 \
+		--template-file deployment/result.yaml \
+		--output-template-file build/result.yaml \
+		--s3-bucket com.penguinwan.deployment
+	aws --region eu-central-1 cloudformation deploy \
+		--template-file build/result.yaml \
+		--stack-name result \
+		--no-fail-on-empty-changeset \
+		--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
