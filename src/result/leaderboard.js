@@ -29,7 +29,7 @@ exports.leaderboard = async (aws, batchTable, participantTable, resultTable) => 
     rank.push({ session_id, nickname, total, score });
   }
 
-  let sorted = rank.sort((first, second) => first.score < second.score);
+  let sorted = rank.sort((first, second) => second.score - first.score);
 
   return { rank: sorted };
 }

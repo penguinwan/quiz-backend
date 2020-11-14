@@ -26,6 +26,20 @@ describe('result', function () {
   })
 
   afterEach(async () => {
+    const batchScan = await ddb.scan({ TableName: 'Batch' }).promise();
+    if (batchScan.Items) {
+      batchScan.Items.forEach(async (it) => {
+        await ddb.deleteItem({ TableName: 'Batch', Key: { batch_id: { S: it.batch_id.S } } }).promise();
+      })
+    }
+
+    const participantScan = await ddb.scan({ TableName: 'Participant' }).promise();
+    if (participantScan.Items) {
+      participantScan.Items.forEach(async (it) => {
+        await ddb.deleteItem({ TableName: 'Participant', Key: { session_id: { S: it.session_id.S } } }).promise();
+      })
+    }
+
     const scan = await ddb.scan({ TableName: TABLE_NAME }).promise();
     if (scan.Items) {
       scan.Items.forEach(async (it) => {
@@ -72,6 +86,7 @@ describe('result', function () {
 
     await participantSave(AWS, 'Participant', 'session1', 'nickname1');
     await participantSave(AWS, 'Participant', 'session2', 'nickname2');
+    await participantSave(AWS, 'Participant', 'session3', 'nickname3');
 
     await batchSave(AWS, 'Batch', 'batch1',
       question('b1-q1', 'b1-q1', 'b1-q1-a1-correct', answer('b1-q1-a1-correct', 'b1-q1-a1'), answer('b1-q1-a2', 'b1-q1-a2')),
@@ -94,7 +109,7 @@ describe('result', function () {
       'batch2',
       'session1',
       { id: 'b2-q1', answer: 'b2-q1-a2-correct' },
-      { id: 'b2-q2', answer: 'b2-q2-a2-correct' }
+      { id: 'b2-q2', answer: 'b2-q2-a1' }
     );
 
     await save(AWS,
@@ -112,10 +127,26 @@ describe('result', function () {
       { id: 'b2-q2', answer: 'b2-q2-a2-correct' }
     );
 
+    await save(AWS,
+      TABLE_NAME,
+      'batch1',
+      'session3',
+      { id: 'b1-q1', answer: 'b1-q1-a1-correct' },
+      { id: 'b1-q2', answer: 'b1-q2-a1-correct' }
+    );
+    await save(AWS,
+      TABLE_NAME,
+      'batch2',
+      'session3',
+      { id: 'b2-q1', answer: 'b2-q1-a2-correct' },
+      { id: 'b2-q2', answer: 'b2-q2-a2-correct' }
+    );
+
     const result = await leaderboard(AWS, 'Batch', 'Participant', 'Result');
     expect(result).is.eql({
       rank: [
-        { session_id: 'session1', nickname: 'nickname1', total: 4, score: 4 },
+        { session_id: 'session3', nickname: 'nickname3', total: 4, score: 4 },
+        { session_id: 'session1', nickname: 'nickname1', total: 4, score: 3 },
         { session_id: 'session2', nickname: 'nickname2', total: 4, score: 1 }
       ]
     });

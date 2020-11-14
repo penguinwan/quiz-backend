@@ -25,7 +25,7 @@ describe('post participant', function () {
     }
   })
 
-  after(async () => {
+  afterEach(async () => {
     const scan = await ddb.scan({ TableName: TABLE_NAME }).promise();
     if (scan.Items) {
       scan.Items.forEach(async (it) => {
