@@ -42,9 +42,9 @@ async function get() {
 
 async function post(event) {
   const body = JSON.parse(event.body);
-  const { batch_id, session_id, answers } = body;
+  const { batch_id, session_id, response_time, answers } = body;
   try {
-    await save(AWS, RESULT_TABLE_NAME, batch_id, session_id, ...answers);
+    await save(AWS, RESULT_TABLE_NAME, batch_id, session_id, response_time, ...answers);
     return {
       'statusCode': 200,
       'headers': {

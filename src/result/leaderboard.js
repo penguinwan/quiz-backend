@@ -12,8 +12,10 @@ exports.leaderboard = async (aws, batchTable, participantTable, resultTable) => 
 
     let total = 0;
     let score = 0;
+    let response_time = 0;
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
       const { batch_id, questions } = batches[batchIndex];
+      response_time += findResponseTime(results, session_id, batch_id);
       for (let questionIndex = 0; questionIndex < questions.length; questionIndex++) {
         const { id, correct } = questions[questionIndex];
         const answer = findAnswer(results, session_id, batch_id, id);
@@ -26,10 +28,16 @@ exports.leaderboard = async (aws, batchTable, participantTable, resultTable) => 
       }
 
     }
-    rank.push({ session_id, nickname, total, score });
+    rank.push({ session_id, nickname, total, score, response_time });
   }
 
-  let sorted = rank.sort((first, second) => second.score - first.score);
+  let sorted = rank.sort((first, second) => {
+    if(second.score === first.score) {
+      return first.response_time - second.response_time;
+    } else {
+      return second.score - first.score;
+    }
+  });
 
   return { rank: sorted };
 }
@@ -39,3 +47,7 @@ function findAnswer(results, session_id, batch_id, question_id) {
   return (result && result.answers) ? result.answers.find((it) => it.id === question_id) : null;
 }
 
+function findResponseTime(results, session_id, batch_id) {
+  const result = results.find((it) => it.session_id === session_id && it.batch_id === batch_id);
+  return result ? result.response_time : 0;
+}

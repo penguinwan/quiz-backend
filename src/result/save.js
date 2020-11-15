@@ -1,4 +1,4 @@
-exports.save = async (aws, tableName, batchid, sessionid, ...answers) => {
+exports.save = async (aws, tableName, batchid, sessionid, responsetime, ...answers) => {
   const ddb = new aws.DynamoDB.DocumentClient();
 
   const params = {
@@ -6,6 +6,7 @@ exports.save = async (aws, tableName, batchid, sessionid, ...answers) => {
     Item: {
       batch_id: batchid,
       session_id: sessionid,
+      response_time: responsetime,
       answers: [ ...answers ]
     }
   };

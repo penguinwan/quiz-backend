@@ -59,6 +59,7 @@ describe('result', function () {
       TABLE_NAME,
       'batch-123',
       'session-123',
+      3000,
       { id: 'a1', answer: 'a' },
       { id: 'a2', answer: 'b' }
     );
@@ -71,6 +72,7 @@ describe('result', function () {
     expect(result.Item).to.eql({
       batch_id: 'batch-123',
       session_id: 'session-123',
+      response_time: 3000,
       answers: [
         { id: 'a1', answer: 'a' },
         { id: 'a2', answer: 'b' }
@@ -101,6 +103,7 @@ describe('result', function () {
       TABLE_NAME,
       'batch1',
       'session1',
+      3000,
       { id: 'b1-q1', answer: 'b1-q1-a1-correct' },
       { id: 'b1-q2', answer: 'b1-q2-a1-correct' }
     );
@@ -108,6 +111,7 @@ describe('result', function () {
       TABLE_NAME,
       'batch2',
       'session1',
+      3000,
       { id: 'b2-q1', answer: 'b2-q1-a2-correct' },
       { id: 'b2-q2', answer: 'b2-q2-a1' }
     );
@@ -116,6 +120,7 @@ describe('result', function () {
       TABLE_NAME,
       'batch1',
       'session2',
+      3000,
       { id: 'b1-q1', answer: 'b1-q1-a2' },
       { id: 'b1-q2', answer: 'b1-q2-a2' }
     );
@@ -123,6 +128,7 @@ describe('result', function () {
       TABLE_NAME,
       'batch2',
       'session2',
+      3000,
       { id: 'b2-q1', answer: 'b2-q1-a1' },
       { id: 'b2-q2', answer: 'b2-q2-a2-correct' }
     );
@@ -131,6 +137,7 @@ describe('result', function () {
       TABLE_NAME,
       'batch1',
       'session3',
+      3000,
       { id: 'b1-q1', answer: 'b1-q1-a1-correct' },
       { id: 'b1-q2', answer: 'b1-q2-a1-correct' }
     );
@@ -138,6 +145,7 @@ describe('result', function () {
       TABLE_NAME,
       'batch2',
       'session3',
+      3000,
       { id: 'b2-q1', answer: 'b2-q1-a2-correct' },
       { id: 'b2-q2', answer: 'b2-q2-a2-correct' }
     );
@@ -145,9 +153,9 @@ describe('result', function () {
     const result = await leaderboard(AWS, 'Batch', 'Participant', 'Result');
     expect(result).is.eql({
       rank: [
-        { session_id: 'session3', nickname: 'nickname3', total: 4, score: 4 },
-        { session_id: 'session1', nickname: 'nickname1', total: 4, score: 3 },
-        { session_id: 'session2', nickname: 'nickname2', total: 4, score: 1 }
+        { session_id: 'session3', nickname: 'nickname3', total: 4, score: 4, response_time: 6000 },
+        { session_id: 'session1', nickname: 'nickname1', total: 4, score: 3, response_time: 6000 },
+        { session_id: 'session2', nickname: 'nickname2', total: 4, score: 1, response_time: 6000 }
       ]
     });
   })
@@ -173,6 +181,7 @@ describe('result', function () {
       TABLE_NAME,
       'batch1',
       'session1',
+      3000,
       { id: '1', answer: 'b1-q1-a1-correct' },
       { id: '2', answer: 'b1-q2-a1-correct' }
     );
@@ -180,6 +189,7 @@ describe('result', function () {
       TABLE_NAME,
       'batch2',
       'session1',
+      3000,
       { id: '1', answer: 'b2-q1-a2-correct' },
       { id: '2', answer: 'b2-q2-a1' }
     );
@@ -187,7 +197,7 @@ describe('result', function () {
     const result = await leaderboard(AWS, 'Batch', 'Participant', 'Result');
     expect(result).is.eql({
       rank: [
-        { session_id: 'session1', nickname: 'nickname1', total: 4, score: 3 }
+        { session_id: 'session1', nickname: 'nickname1', total: 4, score: 3, response_time: 6000 }
       ]
     });
   })
@@ -213,8 +223,147 @@ describe('result', function () {
     const result = await leaderboard(AWS, 'Batch', 'Participant', 'Result');
     expect(result).is.eql({
       rank: [
-        { session_id: 'session2', nickname: 'nickname2', total: 0, score: 0 },
-        { session_id: 'session1', nickname: 'nickname1', total: 0, score: 0 }
+        { session_id: 'session2', nickname: 'nickname2', total: 0, score: 0, response_time: 0 },
+        { session_id: 'session1', nickname: 'nickname1', total: 0, score: 0, response_time: 0 }
+      ]
+    });
+  })
+
+  it('leaderboard sort by response time', async function () {
+    const participantSave = require('../src/participant/save').save;
+    const batchSave = require('../src/batch/save').save;
+    const { question, answer } = require('../src/batch/question');
+    const leaderboard = require('../src/result/leaderboard').leaderboard;
+
+    await participantSave(AWS, 'Participant', 'session1', 'nickname1');
+    await participantSave(AWS, 'Participant', 'session2', 'nickname2');
+    await participantSave(AWS, 'Participant', 'session3', 'nickname3');
+    await participantSave(AWS, 'Participant', 'session4', 'nickname4');
+
+    await batchSave(AWS, 'Batch', 'batch1',
+      question('1', '1', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('2', '2', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('3', '3', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('4', '4', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('5', '5', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('6', '6', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong'))
+    )
+
+    await save(AWS,
+      TABLE_NAME,
+      'batch1',
+      'session1',
+      5000,
+      { id: '1', answer: 'correct' },
+      { id: '2', answer: 'correct' },
+      { id: '3', answer: 'correct' },
+      { id: '4', answer: 'correct' },
+      { id: '5', answer: 'correct' },
+      { id: '6', answer: 'correct' }
+    );
+    await save(AWS,
+      TABLE_NAME,
+      'batch1',
+      'session4',
+      1000,
+      { id: '1', answer: 'correct' },
+      { id: '2', answer: 'correct' },
+      { id: '3', answer: 'correct' },
+      { id: '4', answer: 'wrong' },
+      { id: '5', answer: 'wrong' },
+      { id: '6', answer: 'wrong' }
+    );
+    await save(AWS,
+      TABLE_NAME,
+      'batch1',
+      'session2',
+      3000,
+      { id: '1', answer: 'correct' },
+      { id: '2', answer: 'correct' },
+      { id: '3', answer: 'correct' },
+      { id: '4', answer: 'correct' },
+      { id: '5', answer: 'correct' },
+      { id: '6', answer: 'correct' }
+    );
+    await save(AWS,
+      TABLE_NAME,
+      'batch1',
+      'session3',
+      3000,
+      { id: '1', answer: 'correct' },
+      { id: '2', answer: 'correct' },
+      { id: '3', answer: 'correct' },
+      { id: '4', answer: 'wrong' },
+      { id: '5', answer: 'wrong' },
+      { id: '6', answer: 'wrong' }
+    );
+
+    const result = await leaderboard(AWS, 'Batch', 'Participant', 'Result');
+    expect(result).is.eql({
+      rank: [
+        { session_id: 'session2', nickname: 'nickname2', total: 6, score: 6, response_time: 3000 },
+        { session_id: 'session1', nickname: 'nickname1', total: 6, score: 6, response_time: 5000 },
+        { session_id: 'session4', nickname: 'nickname4', total: 6, score: 3, response_time: 1000 },
+        { session_id: 'session3', nickname: 'nickname3', total: 6, score: 3, response_time: 3000 }
+      ]
+    });
+  })
+
+  it('leaderboard shows partial result', async function () {
+    const participantSave = require('../src/participant/save').save;
+    const batchSave = require('../src/batch/save').save;
+    const { question, answer } = require('../src/batch/question');
+    const leaderboard = require('../src/result/leaderboard').leaderboard;
+
+    await participantSave(AWS, 'Participant', 'session1', 'nickname1');
+    await participantSave(AWS, 'Participant', 'session2', 'nickname2');
+    await participantSave(AWS, 'Participant', 'session3', 'nickname3');
+
+    await batchSave(AWS, 'Batch', 'batch1',
+      question('1', '1', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('2', '2', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('3', '3', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('4', '4', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('5', '5', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong')),
+      question('6', '6', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong'))
+    )
+
+    await save(AWS,
+      TABLE_NAME,
+      'batch1',
+      'session1',
+      5000,
+      { id: '1', answer: 'correct' },
+      { id: '2', answer: 'correct' },
+      { id: '5', answer: 'correct' },
+      { id: '6', answer: 'correct' }
+    );
+    await save(AWS,
+      TABLE_NAME,
+      'batch1',
+      'session2',
+      3000,
+      { id: '1', answer: 'correct' },
+      { id: '2', answer: 'correct' },
+      { id: '3', answer: 'correct' },
+      { id: '4', answer: 'correct' }
+    );
+    await save(AWS,
+      TABLE_NAME,
+      'batch1',
+      'session3',
+      3000,
+      { id: '1', answer: 'correct' },
+      { id: '5', answer: 'wrong' },
+      { id: '6', answer: 'wrong' }
+    );
+
+    const result = await leaderboard(AWS, 'Batch', 'Participant', 'Result');
+    expect(result).is.eql({
+      rank: [
+        { session_id: 'session2', nickname: 'nickname2', total: 4, score: 4, response_time: 3000 },
+        { session_id: 'session1', nickname: 'nickname1', total: 4, score: 4, response_time: 5000 },
+        { session_id: 'session3', nickname: 'nickname3', total: 3, score: 1, response_time: 3000 }
       ]
     });
   })
