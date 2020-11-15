@@ -152,6 +152,46 @@ describe('result', function () {
     });
   })
 
+  it('leaderboard - id is batch-dependent', async function () {
+    const participantSave = require('../src/participant/save').save;
+    const batchSave = require('../src/batch/save').save;
+    const { question, answer } = require('../src/batch/question');
+    const leaderboard = require('../src/result/leaderboard').leaderboard;
+
+    await participantSave(AWS, 'Participant', 'session1', 'nickname1');
+
+    await batchSave(AWS, 'Batch', 'batch1',
+      question('1', 'b1-q1', 'b1-q1-a1-correct', answer('b1-q1-a1-correct', 'b1-q1-a1'), answer('b1-q1-a2', 'b1-q1-a2')),
+      question('2', 'b1-q2', 'b1-q2-a1-correct', answer('b1-q2-a1-correct', 'b1-q2-a1'), answer('b1-q2-a2', 'b1-q2-a2'))
+    )
+    await batchSave(AWS, 'Batch', 'batch2',
+      question('1', 'b2-q1', 'b2-q1-a2-correct', answer('b2-q1-a1', 'b2-q1-a1'), answer('b2-q1-a2-correct', 'b2-q1-a2')),
+      question('2', 'b2-q2', 'b2-q2-a2-correct', answer('b2-q2-a1', 'b2-q2-a1'), answer('b2-q2-a2-correct', 'b2-q2-a2-correct'))
+    )
+
+    await save(AWS,
+      TABLE_NAME,
+      'batch1',
+      'session1',
+      { id: '1', answer: 'b1-q1-a1-correct' },
+      { id: '2', answer: 'b1-q2-a1-correct' }
+    );
+    await save(AWS,
+      TABLE_NAME,
+      'batch2',
+      'session1',
+      { id: '1', answer: 'b2-q1-a2-correct' },
+      { id: '2', answer: 'b2-q2-a1' }
+    );
+
+    const result = await leaderboard(AWS, 'Batch', 'Participant', 'Result');
+    expect(result).is.eql({
+      rank: [
+        { session_id: 'session1', nickname: 'nickname1', total: 4, score: 3 }
+      ]
+    });
+  })
+
   it('leaderboard should return empty', async function () {
     const participantSave = require('../src/participant/save').save;
     const batchSave = require('../src/batch/save').save;

@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+
+Globals:
+  Api:
+    EndpointConfiguration: REGIONAL
+    Name: "Api"
+    Cors: 
+      AllowHeaders: "'Content-Type'"
+      AllowOrigin: "'*'"
+
+Resources:
+
+  BatchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Timeout: 15
+      MemorySize: 512
+      CodeUri: ../src/batch
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !ImportValue BatchTableName
+      Environment:
+        Variables:
+          TABLE_NAME: !ImportValue BatchTableName
+      Events:
+        GetApi:
+          Type: Api
+          Properties:
+            Path: /batches/{batch_id}
+            Method: GET
+        PostApi:
+          Type: Api
+          Properties:
+            Path: /batches
+            Method: POST
+
+  ParticipantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Timeout: 15
+      MemorySize: 512
+      CodeUri: ../src/participant
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !ImportValue ParticipantTableName
+      Environment:
+        Variables:
+          TABLE_NAME: !ImportValue ParticipantTableName
+      Events:
+        GetApi:
+          Type: Api
+          Properties:
+            Path: /participants/{session_id}
+            Method: GET
+        PostApi:
+          Type: Api
+          Properties:
+            Path: /participants
+            Method: POST
+
+  ResultFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Timeout: 15
+      MemorySize: 512
+      CodeUri: ../src/result
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !ImportValue ResultTableName
+        - DynamoDBReadPolicy:
+            TableName: !ImportValue ParticipantTableName
+        - DynamoDBReadPolicy:
+            TableName: !ImportValue BatchTableName
+      Environment:
+        Variables:
+          RESULT_TABLE_NAME: !ImportValue ResultTableName
+          PARTICIPANT_TABLE_NAME: !ImportValue ParticipantTableName
+          BATCH_TABLE_NAME: !ImportValue BatchTableName
+      Events:
+        GetApi:
+          Type: Api
+          Properties:
+            Path: /leaderboard
+            Method: GET
+        PostApi:
+          Type: Api
+          Properties:
+            Path: /answers
+            Method: POST
