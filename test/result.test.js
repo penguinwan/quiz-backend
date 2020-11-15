@@ -80,6 +80,38 @@ describe('result', function () {
     });
   });
 
+  it('should not save double result', async function () {
+    await save(AWS,
+      TABLE_NAME,
+      'batch-456',
+      'session-456',
+      3000,
+      { id: 'a1', answer: 'a' }
+    );
+
+    await save(AWS,
+      TABLE_NAME,
+      'batch-456',
+      'session-456',
+      3000,
+      { id: 'a1', answer: 'double' }
+    );
+
+    const result = await doc.get({
+      TableName: TABLE_NAME,
+      Key: { batch_id: 'batch-456', session_id: 'session-456' }
+    }).promise();
+
+    expect(result.Item).to.eql({
+      batch_id: 'batch-456',
+      session_id: 'session-456',
+      response_time: 3000,
+      answers: [
+        { id: 'a1', answer: 'a' }
+      ]
+    });
+  });
+
   it('leaderboard', async function () {
     const participantSave = require('../src/participant/save').save;
     const batchSave = require('../src/batch/save').save;
