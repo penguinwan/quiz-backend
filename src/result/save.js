@@ -6,7 +6,7 @@ exports.save = async (aws, tableName, batchid, sessionid, responsetime, ...answe
     const params = {
       TableName: tableName,
       Item: {
-        batch_id: batchid,
+        batch_id: batchid.toLowerCase(),
         session_id: sessionid,
         response_time: responsetime,
         answers: [...answers]

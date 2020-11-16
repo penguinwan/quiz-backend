@@ -339,6 +339,34 @@ describe('result', function () {
         { session_id: 'session3', nickname: 'nickname3', total: 6, score: 3, response_time: 3000 }
       ]
     });
+  });
+
+  it('leaderboard batch id is case-insensitive', async function () {
+    const participantSave = require('../src/participant/save').save;
+    const batchSave = require('../src/batch/save').save;
+    const { question, answer } = require('../src/batch/question');
+    const leaderboard = require('../src/result/leaderboard').leaderboard;
+
+    await participantSave(AWS, 'Participant', 'session1', 'nickname1');
+
+    await batchSave(AWS, 'Batch', 'batch1',
+      question('1', '1', 'correct', answer('correct', 'correct'), answer('wrong', 'wrong'))
+    )
+
+    await save(AWS,
+      TABLE_NAME,
+      'BATCH1',
+      'session1',
+      5000,
+      { id: '1', answer: 'correct' }
+    );
+
+    const result = await leaderboard(AWS, 'Batch', 'Participant', 'Result');
+    expect(result).is.eql({
+      rank: [
+        { session_id: 'session1', nickname: 'nickname1', total: 1, score: 1, response_time: 5000 }
+      ]
+    });
   })
 
   it('leaderboard shows partial result', async function () {

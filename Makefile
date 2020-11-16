@@ -1,3 +1,10 @@
+SRC=$(shell ls src)
+
+$(SRC):
+	cd src/$@ && npm i
+
+build: $(SRC)
+
 deploy_participant_table:
 	mkdir -p build
 	aws cloudformation package \
@@ -38,9 +45,6 @@ deploy_result_table:
 		--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
 
 deploy_api:
-	cd src/batch && npm i
-	cd src/participant && npm i
-	cd src/result && npm i
 	mkdir -p build
 	aws cloudformation package \
 		--region eu-central-1 \
