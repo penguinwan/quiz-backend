@@ -44,7 +44,7 @@ deploy_result_table:
 		--no-fail-on-empty-changeset \
 		--capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
 
-deploy_api:
+deploy_api: build
 	mkdir -p build
 	aws cloudformation package \
 		--region eu-central-1 \

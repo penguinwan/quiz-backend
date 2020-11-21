@@ -94,3 +94,10 @@ Resources:
           Properties:
             Path: /answers
             Method: POST
+
+Outputs:
+  Api:
+    Description: api
+    Value: !Ref ServerlessRestApi
+    Export:
+      Name: Api
