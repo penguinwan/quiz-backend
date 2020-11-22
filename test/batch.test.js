@@ -7,6 +7,7 @@ AWS.config.update({
 });
 const ddb = new AWS.DynamoDB();
 const save = require('../src/batch/save').save;
+const saveQuestion = require('../src/batch/save').saveQuestion;
 const fetch = require('../src/batch/fetch').fetch;
 const { question, answer } = require('../src/batch/question');
 const expect = require('chai').expect;
@@ -36,10 +37,10 @@ describe('batch', function () {
   })
 
   it('save and fetch should return result', async function () {
-    await save(AWS, 
-      TABLE_NAME, 
-      'batch-123', 
-      question('1', 'i am question 1', 'b1', 
+    await save(AWS,
+      TABLE_NAME,
+      'batch-123',
+      question('1', 'i am question 1', 'b1',
         answer('a1', '1 i am a'),
         answer('b1', '1 i am b'),
         answer('c1', '1 i am c'),
@@ -56,29 +57,29 @@ describe('batch', function () {
 
     expect(result).to.eql({
       batch_id: 'batch-123',
-      questions: [ 
-      {
-        id: '1', 
-        question: 'i am question 1',
-        correct: 'b1',
-        answers: [
-          {key: 'a1', value: '1 i am a'},
-          {key: 'b1', value: '1 i am b'},
-          {key: 'c1', value: '1 i am c'},
-          {key: 'd1', value: '1 i am d'}
-        ]
-      }, 
-      {
-        id: '2', 
-        question: 'i am question 2',
-        correct: 'c2',
-        answers: [
-          {key: 'a2', value: '2 i am a'},
-          {key: 'b2', value: '2 i am b'},
-          {key: 'c2', value: '2 i am c'},
-          {key: 'd2', value: '2 i am d'}
-        ]
-      }
+      questions: [
+        {
+          id: '1',
+          question: 'i am question 1',
+          correct: 'b1',
+          answers: [
+            { key: 'a1', value: '1 i am a' },
+            { key: 'b1', value: '1 i am b' },
+            { key: 'c1', value: '1 i am c' },
+            { key: 'd1', value: '1 i am d' }
+          ]
+        },
+        {
+          id: '2',
+          question: 'i am question 2',
+          correct: 'c2',
+          answers: [
+            { key: 'a2', value: '2 i am a' },
+            { key: 'b2', value: '2 i am b' },
+            { key: 'c2', value: '2 i am c' },
+            { key: 'd2', value: '2 i am d' }
+          ]
+        }
       ]
     });
   });
@@ -86,5 +87,29 @@ describe('batch', function () {
   it('fetch should return undefined', async function () {
     const result = await fetch(AWS, TABLE_NAME, 'non-existence');
     expect(result).undefined;
+  })
+
+  it('saveQuestion should append question', async function () {
+    await saveQuestion(AWS, TABLE_NAME, 'batch-asdf', question('1', 'asdf', 'a', answer('a', 'a')));
+    await saveQuestion(AWS, TABLE_NAME, 'batch-asdf', question('2', 'asdf asdf', 'a', answer('a', 'a')));
+
+    const result = await fetch(AWS, TABLE_NAME, 'batch-asdf');
+    expect(result).to.eql({
+      batch_id: 'batch-asdf',
+      questions: [
+        {
+          id: '1',
+          question: 'asdf',
+          correct: 'a',
+          answers: [{ key: 'a', value: 'a' }]
+        },
+        {
+          id: '2',
+          question: 'asdf asdf',
+          correct: 'a',
+          answers: [{ key: 'a', value: 'a' }]
+        }
+      ]
+    });
   })
 });
