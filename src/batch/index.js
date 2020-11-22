@@ -1,6 +1,8 @@
 const AWS = require('aws-sdk');
-const { save } = require('./save');
+const { save, saveQuestion } = require('./save');
 const { fetch } = require('./fetch');
+const { question, answer } = require('./question');
+const uuid = require('uuid');
 
 const TABLE_NAME = process.env.TABLE_NAME;
 
@@ -9,6 +11,8 @@ exports.handler = async (event) => {
     return get(event);
   } else if (event.httpMethod === 'POST') {
     return post(event);
+  } else if (event.httpMethod === 'PUT') {
+    return put(event);
   } else {
     return {
       'statusCode': 418,
@@ -34,6 +38,33 @@ async function get(event) {
   } else {
     return {
       'statusCode': 404,
+      'headers': {
+        'Access-Control-Allow-Origin': '*',
+      }
+    }
+  }
+}
+
+async function put(event) {
+  const body = JSON.parse(event.body);
+  const batchId = 'trial';
+  const questionId = uuid.v4();
+  const answers = body.answers.map(it => {
+    return answer(it.key, it.value)
+  });
+  const saved = question(questionId, body.question, body.correct, ...answers);
+  try {
+    await saveQuestion(AWS, TABLE_NAME, batchId, saved);
+    return {
+      'statusCode': 200,
+      'headers': {
+        'Access-Control-Allow-Origin': '*',
+      }
+    }
+  } catch (e) {
+    console.error(`ERROR: ${e}`);
+    return {
+      'statusCode': 500,
       'headers': {
         'Access-Control-Allow-Origin': '*',
       }

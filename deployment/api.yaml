@@ -36,6 +36,11 @@ Resources:
           Properties:
             Path: /batches
             Method: POST
+        PutApi:
+          Type: Api
+          Properties:
+            Path: /batches
+            Method: PUT
 
   ParticipantFunction:
     Type: AWS::Serverless::Function
