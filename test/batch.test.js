@@ -13,6 +13,7 @@ const { question, answer } = require('../src/batch/question');
 const expect = require('chai').expect;
 
 const TABLE_NAME = 'Batch';
+process.env.ALLOWED_TIME = 3000;
 
 describe('batch', function () {
   before(async () => {
@@ -57,6 +58,7 @@ describe('batch', function () {
 
     expect(result).to.eql({
       batch_id: 'batch-123',
+      allowed_time: 3000,
       questions: [
         {
           id: '1',
@@ -96,6 +98,7 @@ describe('batch', function () {
     const result = await fetch(AWS, TABLE_NAME, 'batch-asdf');
     expect(result).to.eql({
       batch_id: 'batch-asdf',
+      allowed_time: 3000,
       questions: [
         {
           id: '1',

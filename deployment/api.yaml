@@ -25,6 +25,7 @@ Resources:
       Environment:
         Variables:
           TABLE_NAME: !ImportValue BatchTableName
+          ALLOWED_TIME: 60000
       Events:
         GetApi:
           Type: Api
