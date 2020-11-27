@@ -47,7 +47,7 @@ async function get(event) {
 
 async function put(event) {
   const body = JSON.parse(event.body);
-  const batchId = 'trial';
+  const batchId = 'bank';
   const questionId = uuid.v4();
   const answers = body.answers.map(it => {
     return answer(it.key, it.value)
