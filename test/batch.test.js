@@ -10,6 +10,7 @@ const save = require('../src/batch/save').save;
 const saveQuestion = require('../src/batch/save').saveQuestion;
 const fetch = require('../src/batch/fetch').fetch;
 const { question, answer } = require('../src/batch/question');
+const lockQuestion = require('../src/batch/save').lockQuestion;
 const expect = require('chai').expect;
 
 const TABLE_NAME = 'Batch';
@@ -114,5 +115,12 @@ describe('batch', function () {
         }
       ]
     });
+  })
+
+  it('should not fetch locked batch', async function () {
+    await saveQuestion(AWS, TABLE_NAME, 'batch-asdf', question('1', 'asdf', 'a', answer('a', 'a')));
+    await lockQuestion(AWS, TABLE_NAME, 'batch-asdf')
+    const result = await fetch(AWS, TABLE_NAME, 'batch-asdf');
+    expect(result).undefined;
   })
 });
