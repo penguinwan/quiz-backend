@@ -117,6 +117,10 @@ describe('batch', function () {
     });
   })
 
+  it('should lock non-existence batch', async function () {
+    await lockQuestion(AWS, TABLE_NAME, 'batch-non')
+  })
+
   it('should not fetch locked batch', async function () {
     await saveQuestion(AWS, TABLE_NAME, 'batch-asdf', question('1', 'asdf', 'a', answer('a', 'a')));
     await lockQuestion(AWS, TABLE_NAME, 'batch-asdf')

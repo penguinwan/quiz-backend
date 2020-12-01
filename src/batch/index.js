@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const { save, saveQuestion } = require('./save');
+const { save, saveQuestion, lockQuestion } = require('./save');
 const { fetch } = require('./fetch');
 const { question, answer } = require('./question');
 const uuid = require('uuid');
@@ -10,9 +10,9 @@ exports.handler = async (event) => {
   if (event.httpMethod === 'GET') {
     return get(event);
   } else if (event.httpMethod === 'POST') {
-    return post(event);
+    return postQuestions(event);
   } else if (event.httpMethod === 'PUT') {
-    return put(event);
+    return putBatch(event);
   } else {
     return {
       'statusCode': 418,
@@ -45,7 +45,7 @@ async function get(event) {
   }
 }
 
-async function put(event) {
+async function postQuestions(event) {
   const body = JSON.parse(event.body);
   const batchId = 'bank';
   const questionId = uuid.v4();
@@ -55,6 +55,27 @@ async function put(event) {
   const saved = question(questionId, body.question, body.correct, ...answers);
   try {
     await saveQuestion(AWS, TABLE_NAME, batchId, saved);
+    return {
+      'statusCode': 200,
+      'headers': {
+        'Access-Control-Allow-Origin': '*',
+      }
+    }
+  } catch (e) {
+    console.error(`ERROR: ${e}`);
+    return {
+      'statusCode': 500,
+      'headers': {
+        'Access-Control-Allow-Origin': '*',
+      }
+    }
+  }
+}
+
+async function putBatch(event) {
+  const batch_id = event.pathParameters.batch_id;
+  try {
+    await lockQuestion(AWS, TABLE_NAME, batch_id);
     return {
       'statusCode': 200,
       'headers': {
