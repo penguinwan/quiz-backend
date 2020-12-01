@@ -32,16 +32,16 @@ Resources:
           Properties:
             Path: /batches/{batch_id}
             Method: GET
-        PostApi:
-          Type: Api
-          Properties:
-            Path: /batches
-            Method: POST
         PutApi:
           Type: Api
           Properties:
-            Path: /batches
+            Path: /batches/{batch_id}
             Method: PUT
+        PostQuestionsApi:
+          Type: Api
+          Properties:
+            Path: /batches/{batch_id}/questions
+            Method: POST
 
   ParticipantFunction:
     Type: AWS::Serverless::Function
