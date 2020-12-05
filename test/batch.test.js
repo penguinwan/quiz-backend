@@ -41,7 +41,7 @@ describe('batch', function () {
   it('save and fetch should return result', async function () {
     await save(AWS,
       TABLE_NAME,
-      'batch-123',
+      'BATCH-abc-123',
       question('1', 'i am question 1', 'b1',
         answer('a1', '1 i am a'),
         answer('b1', '1 i am b'),
@@ -55,10 +55,10 @@ describe('batch', function () {
         answer('d2', '2 i am d')
       )
     );
-    const result = await fetch(AWS, TABLE_NAME, 'batch-123');
+    const result = await fetch(AWS, TABLE_NAME, 'batch-ABC-123');
 
     expect(result).to.eql({
-      batch_id: 'batch-123',
+      batch_id: 'batch-abc-123',
       allowed_time: 3000,
       questions: [
         {
@@ -92,9 +92,27 @@ describe('batch', function () {
     expect(result).undefined;
   })
 
-  it('saveQuestion should append question', async function () {
+  it('saveQuestion and fetch should be case-insensitive', async function () {
+    await saveQuestion(AWS, TABLE_NAME, 'BATCH-cde', question('1', 'asdf', 'a', answer('a', 'a')));
+
+    const result = await fetch(AWS, TABLE_NAME, 'batch-CDE');
+    expect(result).to.eql({
+      batch_id: 'batch-cde',
+      allowed_time: 3000,
+      questions: [
+        {
+          id: '1',
+          question: 'asdf',
+          correct: 'a',
+          answers: [{ key: 'a', value: 'a' }]
+        }
+      ]
+    });
+  })
+
+  it('saveQuestion should append question & case-insensitive', async function () {
     await saveQuestion(AWS, TABLE_NAME, 'batch-asdf', question('1', 'asdf', 'a', answer('a', 'a')));
-    await saveQuestion(AWS, TABLE_NAME, 'batch-asdf', question('2', 'asdf asdf', 'a', answer('a', 'a')));
+    await saveQuestion(AWS, TABLE_NAME, 'BATCH-asdf', question('2', 'asdf asdf', 'a', answer('a', 'a')));
 
     const result = await fetch(AWS, TABLE_NAME, 'batch-asdf');
     expect(result).to.eql({
@@ -125,6 +143,13 @@ describe('batch', function () {
     await saveQuestion(AWS, TABLE_NAME, 'batch-asdf', question('1', 'asdf', 'a', answer('a', 'a')));
     await lockQuestion(AWS, TABLE_NAME, 'batch-asdf')
     const result = await fetch(AWS, TABLE_NAME, 'batch-asdf');
+    expect(result).undefined;
+  })
+
+  it('lock batch - case-insensitive', async function () {
+    await saveQuestion(AWS, TABLE_NAME, 'batch-ghi', question('1', 'asdf', 'a', answer('a', 'a')));
+    await lockQuestion(AWS, TABLE_NAME, 'BATCH-GHI')
+    const result = await fetch(AWS, TABLE_NAME, 'batch-ghi');
     expect(result).undefined;
   })
 });

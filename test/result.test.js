@@ -112,6 +112,45 @@ describe('result', function () {
     });
   });
 
+  it('should not save double result - case insensitive', async function () {
+    await save(AWS,
+      TABLE_NAME,
+      'batch-789',
+      'session-789',
+      3000,
+      { id: 'a1', answer: 'a' }
+    );
+
+    await save(AWS,
+      TABLE_NAME,
+      'BATCH-789',
+      'session-789',
+      3000,
+      { id: 'a1', answer: 'double' }
+    );
+
+    const result = await doc.get({
+      TableName: TABLE_NAME,
+      Key: { batch_id: 'batch-789', session_id: 'session-789' }
+    }).promise();
+
+    expect(result.Item).to.eql({
+      batch_id: 'batch-789',
+      session_id: 'session-789',
+      response_time: 3000,
+      answers: [
+        { id: 'a1', answer: 'a' }
+      ]
+    });
+
+    const BATCH789 = await doc.get({
+      TableName: TABLE_NAME,
+      Key: { batch_id: 'BATCH-789', session_id: 'session-789' }
+    }).promise();
+
+    expect(BATCH789.Item).undefined;
+  });
+
   it('leaderboard', async function () {
     const participantSave = require('../src/participant/save').save;
     const batchSave = require('../src/batch/save').save;
