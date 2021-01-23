@@ -19,9 +19,7 @@ Resources:
         - 
           AttributeName: batch_id
           KeyType: RANGE
-      ProvisionedThroughput: 
-        ReadCapacityUnits: "5"
-        WriteCapacityUnits: "5"
+      BillingMode: PAY_PER_REQUEST
       TableName: Result
 
 Outputs:
